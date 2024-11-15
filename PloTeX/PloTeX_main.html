@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>PloTeX</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <style>
         /* CSS - Stilregeln */
         body {
@@ -252,6 +253,9 @@
             const dropdowns = document.querySelectorAll("#data-table select.file-select");
             dropdowns.forEach(dropdown => {
                 dropdown.innerHTML = options;
+                if (dropdown.options.length > 0) {
+                    updateColumnOptions(dropdown, dropdown.classList.contains('column-select-x') ? 'x' : 'y');
+                }
             });
         }
 
@@ -292,25 +296,39 @@
             const files = document.getElementById("file-input").files;
             for (let i = 0; i < files.length; i++) {
                 if (files[i].name === selectedFileName) {
-                    const reader = new FileReader();
-                    reader.onload = function(e) {
-                        const content = e.target.result;
-                        const rows = content.split(/\r?\n/);
-                        if (rows.length > 0) {
-                            const headerRow = rows[0];
-                            const delimiters = [",", "\t", ";", "|", " "];
-                            let headers = [];
-                            for (const delimiter of delimiters) {
-                                if (headerRow.includes(delimiter)) {
-                                    headers = headerRow.split(delimiter);
-                                    break;
-                                }
-                            }
-                            const options = headers.map(header => `<option value="${header.trim()}">${header.trim()}</option>`).join('');
+                    if (files[i].name.endsWith('.xlsx')) {
+                        const reader = new FileReader();
+                        reader.onload = function(e) {
+                            const data = new Uint8Array(e.target.result);
+                            const workbook = XLSX.read(data, { type: 'array' });
+                            const firstSheetName = workbook.SheetNames[0];
+                            const worksheet = workbook.Sheets[firstSheetName];
+                            const headers = XLSX.utils.sheet_to_json(worksheet, { header: 1 })[0];
+                            const options = headers.map(header => `<option value="${header}">${header}</option>`).join('');
                             columnSelect.innerHTML = options;
-                        }
-                    };
-                    reader.readAsText(files[i]);
+                        };
+                        reader.readAsArrayBuffer(files[i]);
+                    } else {
+                        const reader = new FileReader();
+                        reader.onload = function(e) {
+                            const content = e.target.result;
+                            const rows = content.split(/\r?\n/);
+                            if (rows.length > 0) {
+                                const headerRow = rows[0];
+                                const delimiters = [",", "\t", ";", "|", " "];
+                                let headers = [];
+                                for (const delimiter of delimiters) {
+                                    if (headerRow.includes(delimiter)) {
+                                        headers = headerRow.split(delimiter);
+                                        break;
+                                    }
+                                }
+                                const options = headers.map(header => `<option value="${header.trim()}">${header.trim()}</option>`).join('');
+                                columnSelect.innerHTML = options;
+                            }
+                        };
+                        reader.readAsText(files[i]);
+                    }
                     break;
                 }
             }
