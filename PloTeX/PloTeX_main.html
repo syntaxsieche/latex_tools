@@ -234,6 +234,7 @@
                     <span>${files[i].name}</span>
                     <button onclick="deleteFile(this)">🗑️</button>
                 `;
+                fileItem.dataset.fileIndex = i;
                 fileList.appendChild(fileItem);
             }
             updateDropdownOptions();
@@ -248,7 +249,7 @@
         function updateDropdownOptions() {
             const fileList = document.getElementById("file-list").children;
             const options = Array.from(fileList).map(fileItem => `<option value="${fileItem.children[0].innerText}">${fileItem.children[0].innerText}</option>`).join('');
-            const dropdowns = document.querySelectorAll("#data-table select");
+            const dropdowns = document.querySelectorAll("#data-table select.file-select");
             dropdowns.forEach(dropdown => {
                 dropdown.innerHTML = options;
             });
@@ -262,20 +263,56 @@
             const options = Array.from(fileList).map(fileItem => `<option value="${fileItem.children[0].innerText}">${fileItem.children[0].innerText}</option>`).join('');
 
             const xDataCell = newRow.insertCell(0);
-            xDataCell.innerHTML = `<select>${options}</select>`;
+            xDataCell.innerHTML = `<select class="file-select" onchange="updateColumnOptions(this, 'x')">${options}</select>`;
 
             const xColumnCell = newRow.insertCell(1);
-            xColumnCell.innerHTML = "";
+            xColumnCell.innerHTML = `<select class="column-select-x"></select>`;
 
             const yDataCell = newRow.insertCell(2);
-            yDataCell.innerHTML = `<select>${options}</select>`;
+            yDataCell.innerHTML = `<select class="file-select" onchange="updateColumnOptions(this, 'y')">${options}</select>`;
 
             const yColumnCell = newRow.insertCell(3);
-            yColumnCell.innerHTML = "";
+            yColumnCell.innerHTML = `<select class="column-select-y"></select>`;
 
             for (let i = 4; i < 11; i++) {
                 const newCell = newRow.insertCell(i);
                 newCell.innerHTML = "";
+            }
+        }
+
+        function updateColumnOptions(fileSelect, axis) {
+            const selectedFileName = fileSelect.value;
+            const columnSelect = fileSelect.parentElement.nextElementSibling.querySelector(`.column-select-${axis}`);
+
+            if (!selectedFileName) {
+                columnSelect.innerHTML = "";
+                return;
+            }
+
+            const files = document.getElementById("file-input").files;
+            for (let i = 0; i < files.length; i++) {
+                if (files[i].name === selectedFileName) {
+                    const reader = new FileReader();
+                    reader.onload = function(e) {
+                        const content = e.target.result;
+                        const rows = content.split(/\r?\n/);
+                        if (rows.length > 0) {
+                            const headerRow = rows[0];
+                            const delimiters = [",", "\t", ";", "|", " "];
+                            let headers = [];
+                            for (const delimiter of delimiters) {
+                                if (headerRow.includes(delimiter)) {
+                                    headers = headerRow.split(delimiter);
+                                    break;
+                                }
+                            }
+                            const options = headers.map(header => `<option value="${header.trim()}">${header.trim()}</option>`).join('');
+                            columnSelect.innerHTML = options;
+                        }
+                    };
+                    reader.readAsText(files[i]);
+                    break;
+                }
             }
         }
 
