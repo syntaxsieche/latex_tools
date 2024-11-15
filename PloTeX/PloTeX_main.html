@@ -213,10 +213,6 @@
     </div>
     
     <script>
-        document.addEventListener("DOMContentLoaded", function() {
-            addRow(); // Füge eine Zeile hinzu, wenn die Seite geladen wird
-        });
-    
         function toggleContent(id) {
             const content = document.getElementById(id);
             const arrow = document.getElementById("arrow-" + id);
@@ -228,12 +224,10 @@
                 arrow.classList.remove("open");
             }
         }
-    
+
         function handleFileUpload(event) {
             const fileList = document.getElementById("file-list");
             const files = event.target.files;
-            
-            // Alte Dateien behalten und neue hinzufügen
             for (let i = 0; i < files.length; i++) {
                 const fileItem = document.createElement("div");
                 fileItem.className = "file-item";
@@ -241,18 +235,18 @@
                     <span>${files[i].name}</span>
                     <button onclick="deleteFile(this)">🗑️</button>
                 `;
-                fileItem.dataset.fileIndex = fileList.children.length;
+                fileItem.dataset.fileIndex = i;
                 fileList.appendChild(fileItem);
             }
             updateDropdownOptions();
         }
-    
+
         function deleteFile(button) {
             const fileItem = button.parentElement;
             fileItem.remove();
             updateDropdownOptions();
         }
-    
+
         function updateDropdownOptions() {
             const fileList = document.getElementById("file-list").children;
             const options = Array.from(fileList).map(fileItem => `<option value="${fileItem.children[0].innerText}">${fileItem.children[0].innerText}</option>`).join('');
@@ -264,65 +258,65 @@
                 }
             });
         }
-    
+
         function addRow() {
-            const table = document.getElementById("data-table");
-            const newRow = table.insertRow();
-    
-            const fileList = document.getElementById("file-list").children;
-            const options = Array.from(fileList).map(fileItem => `<option value="${fileItem.children[0].innerText}">${fileItem.children[0].innerText}</option>`).join('');
-    
-            const xDataCell = newRow.insertCell(0);
-            xDataCell.innerHTML = `<select class="file-select" onchange="updateColumnOptions(this, 'x')">${options}</select>`;
-    
-            const xColumnCell = newRow.insertCell(1);
-            xColumnCell.innerHTML = `<select class="column-select-x"></select>`;
-    
-            const yDataCell = newRow.insertCell(2);
-            yDataCell.innerHTML = `<select class="file-select" onchange="updateColumnOptions(this, 'y')">${options}</select>`;
-    
-            const yColumnCell = newRow.insertCell(3);
-            yColumnCell.innerHTML = `<select class="column-select-y"></select>`;
-    
-            const visibleCell = newRow.insertCell(4);
-            visibleCell.innerHTML = `<input type="checkbox" checked>`;
-    
-            const legendNameCell = newRow.insertCell(5);
-            legendNameCell.innerHTML = `<input type="text" placeholder="Legend Name">`;
-    
-            const colorCell = newRow.insertCell(6);
-            const colors = ["purple", "blue", "red", "teal", "orange", "darkgray", "cyan", "magenta", "brown"];
-            const rowIndex = (table.rows.length - 1) % colors.length;
-            const colorIndex = rowIndex % colors.length;
-            colorCell.innerHTML = `<select>
-                ${colors.map((color, index) => `<option value="${color}" ${index === colorIndex ? 'selected' : ''}>${color}</option>`).join('')}
-            </select>`;
-    
-            for (let i = 7; i < 12; i++) {
-                const newCell = newRow.insertCell(i);
-                newCell.innerHTML = "";
-            }
-    
-            // Update column selections initially based on the current file selections
-            const xFileSelect = xDataCell.querySelector('.file-select');
-            if (xFileSelect && xFileSelect.value) {
-                updateColumnOptions(xFileSelect, 'x');
-            }
-            const yFileSelect = yDataCell.querySelector('.file-select');
-            if (yFileSelect && yFileSelect.value) {
-                updateColumnOptions(yFileSelect, 'y');
-            }
+        const table = document.getElementById("data-table");
+        const newRow = table.insertRow();
+
+        const fileList = document.getElementById("file-list").children;
+        const options = Array.from(fileList).map(fileItem => `<option value="${fileItem.children[0].innerText}">${fileItem.children[0].innerText}</option>`).join('');
+
+        const xDataCell = newRow.insertCell(0);
+        xDataCell.innerHTML = `<select class="file-select" onchange="updateColumnOptions(this, 'x')">${options}</select>`;
+
+        const xColumnCell = newRow.insertCell(1);
+        xColumnCell.innerHTML = `<select class="column-select-x"></select>`;
+
+        const yDataCell = newRow.insertCell(2);
+        yDataCell.innerHTML = `<select class="file-select" onchange="updateColumnOptions(this, 'y')">${options}</select>`;
+
+        const yColumnCell = newRow.insertCell(3);
+        yColumnCell.innerHTML = `<select class="column-select-y"></select>`;
+
+        const visibleCell = newRow.insertCell(4);
+        visibleCell.innerHTML = `<input type="checkbox" checked>`;
+
+        const legendNameCell = newRow.insertCell(5);
+        legendNameCell.innerHTML = `<input type="text" placeholder="Legend Name">`;
+
+        const colorCell = newRow.insertCell(6);
+        const colors = [ "purple","blue", "red", "teal", "orange", "darkgray", "cyan", "magenta", "brown"];
+        const rowIndex = (table.rows.length - 1) % colors.length;
+        const colorIndex = rowIndex % colors.length;
+        colorCell.innerHTML = `<select>
+            ${colors.map((color, index) => `<option value="${color}" ${index === colorIndex ? 'selected' : ''}>${color}</option>`).join('')}
+        </select>`;
+
+        for (let i = 7; i < 12; i++) {
+            const newCell = newRow.insertCell(i);
+            newCell.innerHTML = "";
         }
-    
+
+        // Update column selections initially based on the current file selections
+        const xFileSelect = xDataCell.querySelector('.file-select');
+        if (xFileSelect.value) {
+            updateColumnOptions(xFileSelect, 'x');
+        }
+        const yFileSelect = yDataCell.querySelector('.file-select');
+        if (yFileSelect.value) {
+            updateColumnOptions(yFileSelect, 'y');
+        }
+    }
+
         function updateColumnOptions(fileSelect, axis) {
             const selectedFileName = fileSelect.value;
             const columnSelect = fileSelect.parentElement.nextElementSibling.querySelector(`.column-select-${axis}`);
-    
+
             if (!selectedFileName) {
                 columnSelect.innerHTML = "";
                 return;
             }
-    
+
             const files = document.getElementById("file-input").files;
             for (let i = 0; i < files.length; i++) {
                 if (files[i].name === selectedFileName) {
@@ -363,7 +357,18 @@
                 }
             }
         }
+
+        function datamanagerFunktion() {
+            alert("Daten-Button wurde geklickt, macht aber noch nichts Spezielles.");
+        }
+
+        function plotmanagerFunktion() {
+            alert("Plot-Button wurde geklickt, macht aber noch nichts Spezielles.");
+        }
+
+        function exportmanagerFunktion() {
+            alert("Export-Button wurde geklickt, macht aber noch nichts Spezielles.");
+        }
     </script>
-    
 </body>
 </html>
