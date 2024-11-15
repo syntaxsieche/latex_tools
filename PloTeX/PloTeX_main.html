@@ -25,10 +25,15 @@
             align-items: center;
         }
 
-        .home-button {
+        .button-container {
+            display: flex;
+            gap: 10px;
+        }
+
+        .home-button, .extra-button {
             margin-top: 0;
-            padding: 8px 15px;
-            font-size: 1em;
+            padding: 4px 8px;
+            font-size: 0.6em;
             border: none;
             border-radius: 5px;
             background-color: #5a8ff0;
@@ -38,7 +43,7 @@
             text-decoration: none;
         }
 
-        .home-button:hover {
+        .home-button:hover, .extra-button:hover {
             background-color: #4a7ed0;
         }
 
@@ -143,7 +148,11 @@
 <body>
     <header>
         <div>PloTeX</div>
-        <a href="../index.html" class="home-button">Home</a>
+        <div class="button-container">
+            <a href="../index.html" class="home-button" target="_blank">Home</a>
+            <a href="/Tabeller/latex-einheiten-creator.html" class="extra-button" target="_blank">Einheiten generieren</a>
+            <a href="/Tabeller/latex-formelzeichen-creator.html" class="extra-button" target="_blank">Formelzeichen generieren</a>
+        </div>
     </header>
     <div id="dateimanager-container" class="toggle-container">
         <div class="toggle-header" onclick="toggleContent('dateimanager')">
