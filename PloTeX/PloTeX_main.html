@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PloTeX</title>
+    <style>
+        /* CSS - Stilregeln */
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #333;
+            color: #f0f0f0;
+            text-align: center;
+            margin: 20px;
+        }
+
+        header {
+            color: white;
+            padding: 15px;
+            text-align: left;
+            width: 100%;
+            font-size: 2em;
+        }
+
+        main {
+            background-color: #444;
+            padding: 20px;
+            margin: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 15px rgba(0, 0, 0, 0.3);
+        }
+
+        button {
+            background-color: #5a8ff0;
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            cursor: pointer;
+            border-radius: 5px;
+            transition: background-color 0.3s;
+        }
+
+        button:hover {
+            background-color: #4a7ed0;
+        }
+
+        .toggle-container {
+            text-align: left;
+            margin-top: 20px;
+        }
+
+        .toggle-content {
+            margin-top: 10px;
+            display: block;
+        }
+
+        .toggle-header {
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+        }
+
+        .toggle-header span {
+            margin-left: 10px;
+        }
+
+        .arrow {
+            transition: transform 0.3s;
+        }
+
+        .arrow.open {
+            transform: rotate(90deg);
+        }
+
+        #file-list {
+            max-height: 200px;
+            overflow-y: auto;
+            margin-top: 15px;
+            border: 1px solid #555;
+            padding: 10px;
+            border-radius: 5px;
+            font-size: 1em;
+        }
+
+        .file-item {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 5px;
+            font-size: 1em;
+        }
+
+        .file-item button {
+            font-size: 1.2em;
+            padding: 5px;
+            background: none;
+            color: #ff4d4d;
+            border: none;
+            cursor: pointer;
+        }
+
+        .file-item button:hover {
+            color: #e04444;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+        }
+
+        th, td {
+            border: 1px solid #555;
+            padding: 10px;
+            text-align: left;
+        }
+
+        th {
+            background-color: #5a8ff0;
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        PloTeX
+    </header>
+    <div id="dateimanager-container" class="toggle-container">
+        <div class="toggle-header" onclick="toggleContent('dateimanager')">
+            <div class="arrow open" id="arrow-dateimanager">▶</div>
+            <span>File Manager</span>
+        </div>
+        <div id="dateimanager" class="toggle-content">
+            <input type="file" id="file-input" multiple accept=".csv,.txt,.xlsx" onchange="handleFileUpload(event)">
+            <div id="file-list"></div>
+        </div>
+    </div>
+
+    <div id="datamanager-container" class="toggle-container">
+        <div class="toggle-header" onclick="toggleContent('datamanager')">
+            <div class="arrow open" id="arrow-datamanager">▶</div>
+            <span>Data Manager</span>
+        </div>
+        <div id="datamanager" class="toggle-content">
+            <button onclick="addRow()">Add Row</button>
+            <table id="data-table">
+                <tr>
+                    <th>File x_data</th>
+                    <th>Column x_data</th>
+                    <th>File y_data</th>
+                    <th>Column y_data</th>
+                    <th>visible</th>
+                    <th>Legend Name</th>
+                    <th>Color</th>
+                    <th>Linestyle</th>
+                    <th>Linewidth</th>
+                    <th>Markerstyle</th>
+                    <th>-</th>
+                </tr>
+            </table>
+        </div>
+    </div>
+
+    <div id="plotmanager-container" class="toggle-container">
+        <div class="toggle-header" onclick="toggleContent('plotmanager')">
+            <div class="arrow open" id="arrow-plotmanager">▶</div>
+            <span>Plot Manager</span>
+        </div>
+        <div id="plotmanager" class="toggle-content">
+            <button onclick="plotmanagerFunktion()">Plot-Button</button>
+        </div>
+    </div>
+
+    <div id="exportmanager-container" class="toggle-container">
+        <div class="toggle-header" onclick="toggleContent('exportmanager')">
+            <div class="arrow open" id="arrow-exportmanager">▶</div>
+            <span>Export Manager</span>
+        </div>
+        <div id="exportmanager" class="toggle-content">
+            <button onclick="exportmanagerFunktion()">Export-Button</button>
+        </div>
+    </div>
+    
+    <script>
+        // JavaScript - Interaktivität hinzufügen
+        function toggleContent(id) {
+            const content = document.getElementById(id);
+            const arrow = document.getElementById("arrow-" + id);
+            if (content.style.display === "none") {
+                content.style.display = "block";
+                arrow.classList.add("open");
+            } else {
+                content.style.display = "none";
+                arrow.classList.remove("open");
+            }
+        }
+
+        function handleFileUpload(event) {
+            const fileList = document.getElementById("file-list");
+            fileList.innerHTML = ""; // Alte Einträge entfernen
+            const files = event.target.files;
+            for (let i = 0; i < files.length; i++) {
+                const fileItem = document.createElement("div");
+                fileItem.className = "file-item";
+                fileItem.innerHTML = `
+                    <span>${files[i].name}</span>
+                    <button onclick="deleteFile(this)">🗑️</button>
+                `;
+                fileList.appendChild(fileItem);
+            }
+            updateDropdownOptions();
+        }
+
+        function deleteFile(button) {
+            const fileItem = button.parentElement;
+            fileItem.remove();
+            updateDropdownOptions();
+        }
+
+        function updateDropdownOptions() {
+            const fileList = document.getElementById("file-list").children;
+            const options = Array.from(fileList).map(fileItem => `<option value="${fileItem.children[0].innerText}">${fileItem.children[0].innerText}</option>`).join('');
+            const dropdowns = document.querySelectorAll("#data-table select");
+            dropdowns.forEach(dropdown => {
+                dropdown.innerHTML = options;
+            });
+        }
+
+        function addRow() {
+            const table = document.getElementById("data-table");
+            const newRow = table.insertRow();
+
+            const fileList = document.getElementById("file-list").children;
+            const options = Array.from(fileList).map(fileItem => `<option value="${fileItem.children[0].innerText}">${fileItem.children[0].innerText}</option>`).join('');
+
+            const xDataCell = newRow.insertCell(0);
+            xDataCell.innerHTML = `<select>${options}</select>`;
+
+            const xColumnCell = newRow.insertCell(1);
+            xColumnCell.innerHTML = ""; // Leere Zelle für Column x_data
+
+            const yDataCell = newRow.insertCell(2);
+            yDataCell.innerHTML = `<select>${options}</select>`;
+
+            const yColumnCell = newRow.insertCell(3);
+            yColumnCell.innerHTML = ""; // Leere Zelle für Column y_data
+
+            for (let i = 4; i < 11; i++) {
+                const newCell = newRow.insertCell(i);
+                newCell.innerHTML = ""; // Leere Zellen für die restlichen Felder
+            }
+        }
+
+        function datamanagerFunktion() {
+            alert("Daten-Button wurde geklickt, macht aber noch nichts Spezielles.");
+        }
+
+        function plotmanagerFunktion() {
+            alert("Plot-Button wurde geklickt, macht aber noch nichts Spezielles.");
+        }
+
+        function exportmanagerFunktion() {
+            alert("Export-Button wurde geklickt, macht aber noch nichts Spezielles.");
+        }
+    </script>
+</body>
+</html>
