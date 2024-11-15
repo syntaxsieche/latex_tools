@@ -299,12 +299,14 @@
                 <option value="none">none</option>
             </select>`;
 
-            for (let i = 8; i < 12; i++) {
-                const newCell = newRow.insertCell(i);
-                newCell.innerHTML = "";
+            const linewidthCell = newRow.insertCell(8);
+            linewidthCell.innerHTML = `<input type="number" value="1" min="0.1" step="0.5">`;
+
+            for (let i = 9; i < 12; i++) {
+            const newCell = newRow.insertCell(i);
+            newCell.innerHTML = "";
             }
 
-            // Update column selections initially based on the current file selections
             const xFileSelect = xDataCell.querySelector('.file-select');
             if (xFileSelect.value) {
                 updateColumnOptions(xFileSelect, 'x');
