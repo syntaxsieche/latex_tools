@@ -20,6 +20,31 @@
             text-align: left;
             width: 100%;
             font-size: 2em;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .button-container {
+            display: flex;
+            gap: 10px;
+        }
+
+        .home-button, .extra-button {
+            margin-top: 0;
+            padding: 4px 8px;
+            font-size: 0.6em;
+            border: none;
+            border-radius: 5px;
+            background-color: #5a8ff0;
+            color: white;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            text-decoration: none;
+        }
+
+        .home-button:hover, .extra-button:hover {
+            background-color: #4a7ed0;
         }
 
         main {
@@ -53,20 +78,7 @@
             margin-top: 10px;
             display: block;
         }
-        .button, .home-button {
-            margin-top: 20px;
-            padding: 12px 20px;
-            font-size: 1.2em;
-            border: none;
-            border-radius: 5px;
-            background-color: #5a8ff0;
-            color: white;
-            cursor: pointer;
-            transition: background-color 0.3s;
-        }
-        .button:hover, .home-button:hover {
-            background-color: #4a7ed0;
-        }
+
         .toggle-header {
             cursor: pointer;
             display: flex;
@@ -135,9 +147,13 @@
 </head>
 <body>
     <header>
-        PloTeX
+        <div>PloTeX</div>
+        <div class="button-container">
+            <a href="../index.html" class="home-button" target="_blank">Home</a>
+            <a href="../Tabeller/latex-einheiten-creator.html" class="extra-button" target="_blank">Einheiten generieren</a>
+            <a href="../Tabeller/latex-formelzeichen-creator.html" class="extra-button" target="_blank">Formelzeichen generieren</a>
+        </div>
     </header>
-    <a href="../index.html" class="home-button">Home</a>
     <div id="dateimanager-container" class="toggle-container">
         <div class="toggle-header" onclick="toggleContent('dateimanager')">
             <div class="arrow open" id="arrow-dateimanager">▶</div>
@@ -195,7 +211,6 @@
     </div>
     
     <script>
-        // JavaScript - Interaktivität hinzufügen
         function toggleContent(id) {
             const content = document.getElementById(id);
             const arrow = document.getElementById("arrow-" + id);
@@ -210,7 +225,7 @@
 
         function handleFileUpload(event) {
             const fileList = document.getElementById("file-list");
-            fileList.innerHTML = ""; // Alte Einträge entfernen
+            fileList.innerHTML = "";
             const files = event.target.files;
             for (let i = 0; i < files.length; i++) {
                 const fileItem = document.createElement("div");
@@ -250,17 +265,17 @@
             xDataCell.innerHTML = `<select>${options}</select>`;
 
             const xColumnCell = newRow.insertCell(1);
-            xColumnCell.innerHTML = ""; // Leere Zelle für Column x_data
+            xColumnCell.innerHTML = "";
 
             const yDataCell = newRow.insertCell(2);
             yDataCell.innerHTML = `<select>${options}</select>`;
 
             const yColumnCell = newRow.insertCell(3);
-            yColumnCell.innerHTML = ""; // Leere Zelle für Column y_data
+            yColumnCell.innerHTML = "";
 
             for (let i = 4; i < 11; i++) {
                 const newCell = newRow.insertCell(i);
-                newCell.innerHTML = ""; // Leere Zellen für die restlichen Felder
+                newCell.innerHTML = "";
             }
         }
 
