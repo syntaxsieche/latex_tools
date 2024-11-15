@@ -145,6 +145,12 @@
             color: white;
         }
     </style>
+<script>
+        function deleteRow(button) {
+            const row = button.parentElement.parentElement;
+            row.parentElement.removeChild(row);
+        }
+    </script>
 </head>
 <body>
     <header>
@@ -311,14 +317,17 @@
             </select>`;
             
             const yAxisCell = newRow.insertCell(10);
-            yAxisCell.innerHTML = `<select>
-                <option value="left">left</option>
-                <option value="right">right</option>
-            </select>`;
+yAxisCell.innerHTML = `<select>
+    <option value="left">left</option>
+    <option value="right">right</option>
+</select>`;
 
-            for (let i = 11; i < 12; i++) {
-                const newCell = newRow.insertCell(i);
-                newCell.innerHTML = "";
+const deleteCell = newRow.insertCell(11);
+deleteCell.innerHTML = `<button onclick="deleteRow(this)">🗑️</button>`;
+
+for (let i = 12; i < 12; i++) {
+    const newCell = newRow.insertCell(i);
+    newCell.innerHTML = "";
             }
 
             const xFileSelect = xDataCell.querySelector('.file-select');
