@@ -226,7 +226,6 @@
 
         function handleFileUpload(event) {
             const fileList = document.getElementById("file-list");
-            fileList.innerHTML = "";
             const files = event.target.files;
             for (let i = 0; i < files.length; i++) {
                 const fileItem = document.createElement("div");
@@ -281,6 +280,16 @@
             for (let i = 4; i < 11; i++) {
                 const newCell = newRow.insertCell(i);
                 newCell.innerHTML = "";
+            }
+
+            // Update column selections initially based on the current file selections
+            const xFileSelect = xDataCell.querySelector('.file-select');
+            if (xFileSelect.value) {
+                updateColumnOptions(xFileSelect, 'x');
+            }
+            const yFileSelect = yDataCell.querySelector('.file-select');
+            if (yFileSelect.value) {
+                updateColumnOptions(yFileSelect, 'y');
             }
         }
 
