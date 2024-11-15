@@ -211,7 +211,6 @@
     </div>
     
     <script>
-        // JavaScript - Interaktivität hinzufügen
         function toggleContent(id) {
             const content = document.getElementById(id);
             const arrow = document.getElementById("arrow-" + id);
@@ -226,7 +225,7 @@
 
         function handleFileUpload(event) {
             const fileList = document.getElementById("file-list");
-            fileList.innerHTML = ""; // Alte Einträge entfernen
+            fileList.innerHTML = "";
             const files = event.target.files;
             for (let i = 0; i < files.length; i++) {
                 const fileItem = document.createElement("div");
@@ -266,17 +265,17 @@
             xDataCell.innerHTML = `<select>${options}</select>`;
 
             const xColumnCell = newRow.insertCell(1);
-            xColumnCell.innerHTML = ""; // Leere Zelle für Column x_data
+            xColumnCell.innerHTML = "";
 
             const yDataCell = newRow.insertCell(2);
             yDataCell.innerHTML = `<select>${options}</select>`;
 
             const yColumnCell = newRow.insertCell(3);
-            yColumnCell.innerHTML = ""; // Leere Zelle für Column y_data
+            yColumnCell.innerHTML = "";
 
             for (let i = 4; i < 11; i++) {
                 const newCell = newRow.insertCell(i);
-                newCell.innerHTML = ""; // Leere Zellen für die restlichen Felder
+                newCell.innerHTML = "";
             }
         }
 
