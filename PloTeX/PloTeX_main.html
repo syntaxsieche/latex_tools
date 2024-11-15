@@ -141,9 +141,9 @@
         }
 
         th {
-            background-color: #5a8ff0;
-            color: white;
-        }
+    background-color: transparent;
+    color: white;
+}
     </style>
 <script>
         function deleteRow(button) {
@@ -323,7 +323,7 @@ yAxisCell.innerHTML = `<select>
 </select>`;
 
 const deleteCell = newRow.insertCell(11);
-deleteCell.innerHTML = `<button onclick="deleteRow(this)">🗑️</button>`;
+deleteCell.innerHTML = `<button onclick="deleteRow(this)" style="background: none; color: #ff4d4d;">🗑️</button>`;
 
 for (let i = 12; i < 12; i++) {
     const newCell = newRow.insertCell(i);
