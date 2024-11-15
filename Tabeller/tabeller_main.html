@@ -22,7 +22,7 @@
             border-radius: 10px;
             box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
         }
-        .button {
+        .button, .home-button {
             margin-top: 20px;
             padding: 12px 20px;
             font-size: 1.2em;
@@ -33,7 +33,7 @@
             cursor: pointer;
             transition: background-color 0.3s;
         }
-        .button:hover {
+        .button:hover, .home-button:hover {
             background-color: #4a7ed0;
         }
         .input-field, .header-inputs {
@@ -92,6 +92,7 @@
 <body>
 
     <h1>LaTeX Tabeller</h1>
+    <a href="../index.html" class="home-button">Home</a> <!-- Home-Link zur index.html -->
     <div class="container">
         <div class="input-field">
             <label class="input-label" for="fileInput">Datei auswählen:</label>
@@ -126,7 +127,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.16.9/xlsx.full.min.js"></script>
     <script>
         function openNewTab(url) {
-            window.open(url, '_blank'); // Öffnet den Link in einem neuen Browser-Tab
+            window.open(url, '_blank');
         }
 
         function showLatexCode() {
