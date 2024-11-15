@@ -285,16 +285,11 @@
         legendNameCell.innerHTML = `<input type="text" placeholder="Legend Name">`;
 
         const colorCell = newRow.insertCell(6);
+        const colors = [ "purple","blue", "red", "teal", "orange", "darkgray", "cyan", "magenta", "brown"];
+        const rowIndex = (table.rows.length - 1) % colors.length;
+        const colorIndex = rowIndex % colors.length;
         colorCell.innerHTML = `<select>
-            <option value="blue">blue</option>
-            <option value="red">red</option>
-            <option value="teal">teal</option>
-            <option value="orange">orange</option>
-            <option value="darkgray">darkgray</option>
-            <option value="cyan">cyan</option>
-            <option value="magenta">magenta</option>
-            <option value="brown">brown</option>
-            <option value="purple">purple</option>
+            ${colors.map((color, index) => `<option value="${color}" ${index === colorIndex ? 'selected' : ''}>${color}</option>`).join('')}
         </select>`;
 
         for (let i = 7; i < 12; i++) {
