@@ -281,7 +281,10 @@
         const visibleCell = newRow.insertCell(4);
         visibleCell.innerHTML = `<input type="checkbox" checked>`;
 
-        for (let i = 5; i < 12; i++) {
+        const legendNameCell = newRow.insertCell(5);
+        legendNameCell.innerHTML = `<input type="text" placeholder="Legend Name">`;
+
+        for (let i = 6; i < 12; i++) {
             const newCell = newRow.insertCell(i);
             newCell.innerHTML = "";
         }
