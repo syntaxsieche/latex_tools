@@ -293,14 +293,14 @@
             </select>`;
 
             const linestyleCell = newRow.insertCell(7);
-            linestyleCell.innerHTML = `<select>
-                <option value="solid">solid</option>
-                <option value="dashed">dashed</option>
-                <option value="none">none</option>
+            linestyleCell.innerHTML = `<select style="width: auto;">
+            <option value="solid">solid</option>
+            <option value="dashed">dashed</option>
+            <option value="none">none</option>
             </select>`;
 
             const linewidthCell = newRow.insertCell(8);
-            linewidthCell.innerHTML = `<input type="number" value="1" min="0.5" step="0.5">`;
+            linewidthCell.innerHTML = `<input type="number" value="1" min="0.5" step="0.5" style="width: 50px;">`;
             
             const markerstyleCell = newRow.insertCell(9);
             markerstyleCell.innerHTML = `<select>
