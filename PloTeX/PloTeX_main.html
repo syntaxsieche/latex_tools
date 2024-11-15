@@ -297,7 +297,7 @@
             <option value="solid">solid</option>
             <option value="dashed">dashed</option>
             <option value="none">none</option>
-            </select>`;
+        </select>`;
 
             const linewidthCell = newRow.insertCell(8);
             linewidthCell.innerHTML = `<input type="number" value="1" min="0.5" step="0.5" style="width: 50px;">`;
@@ -310,9 +310,15 @@
                 <option value="+">+</option>
             </select>`;
             
-            for (let i = 10; i < 12; i++) {
-            const newCell = newRow.insertCell(i);
-            newCell.innerHTML = "";
+            const yAxisCell = newRow.insertCell(10);
+            yAxisCell.innerHTML = `<select>
+                <option value="left">left</option>
+                <option value="right">right</option>
+            </select>`;
+
+            for (let i = 11; i < 12; i++) {
+                const newCell = newRow.insertCell(i);
+                newCell.innerHTML = "";
             }
 
             const xFileSelect = xDataCell.querySelector('.file-select');
