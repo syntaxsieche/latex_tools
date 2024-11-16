@@ -11,9 +11,11 @@
             color: #f0f0f0;
             text-align: center;
             margin: 20px;
+            position: relative;
         }
         h1 {
             color: #ffffff;
+            margin-top: 0;
         }
         .container {
             margin-top: 20px;
@@ -23,9 +25,8 @@
             box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
         }
         .button, .home-button {
-            margin-top: 20px;
-            padding: 12px 20px;
-            font-size: 1.2em;
+            padding: 8px 16px; /* Kleinere Polsterung */
+            font-size: 0.9em; /* Kleinere Schriftgröße */
             border: none;
             border-radius: 5px;
             background-color: #5a8ff0;
@@ -87,12 +88,24 @@
             text-align: left;
             word-break: break-all;
         }
+        .top-right-buttons {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            display: flex;
+            gap: 10px;
+        }
     </style>
 </head>
 <body>
 
+    <div class="top-right-buttons">
+        <a href="../index.html" class="home-button">Home</a> <!-- Home-Link zur index.html -->
+        <button class="button" onclick="openNewTab('latex-formelzeichen-creator.html')">Formelzeichen einfügen</button>
+        <button class="button" onclick="openNewTab('latex-einheiten-creator.html')">Einheit einfügen</button>
+    </div>
+
     <h1>LaTeX Tabeller</h1>
-    <a href="../index.html" class="home-button">Home</a> <!-- Home-Link zur index.html -->
     <div class="container">
         <div class="input-field">
             <label class="input-label" for="fileInput">Datei auswählen:</label>
@@ -101,10 +114,6 @@
         <div class="input-field">
             <label class="input-label" for="generalDescription">Allgemeine Beschreibung:</label>
             <input type="text" id="generalDescription">
-        </div>
-        <div>
-            <button class="button" onclick="openNewTab('latex-formelzeichen-creator.html')">Formelzeichen einfügen</button>
-            <button class="button" onclick="openNewTab('latex-einheiten-creator.html')">Einheit einfügen</button>
         </div>
         <div class="table-container">
             <table id="dataTable">
