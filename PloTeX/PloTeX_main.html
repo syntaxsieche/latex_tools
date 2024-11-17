@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>PloTeX</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         /* CSS - Stilregeln */
         body {
@@ -205,7 +206,11 @@
         </div>
         <div id="plotmanager" class="toggle-content">
             <button onclick="plotmanagerFunktion()">Plot-Button</button>
+            <div id="plot-container" style="margin-top: 20px;">
+                <canvas id="plotCanvas" width="400" height="200" style="border: 1px solid #555;"></canvas>
+            </div>
         </div>
+        
     </div>
 
     <div id="exportmanager-container" class="toggle-container">
@@ -303,7 +308,7 @@
             <option value="solid">solid</option>
             <option value="dashed">dashed</option>
             <option value="none">none</option>
-        </select>`;
+            </select>`;
 
             const linewidthCell = newRow.insertCell(8);
             linewidthCell.innerHTML = `<input type="number" value="1" min="0.5" step="0.5" style="width: 50px;">`;
@@ -317,28 +322,28 @@
             </select>`;
             
             const yAxisCell = newRow.insertCell(10);
-yAxisCell.innerHTML = `<select>
-    <option value="left">left</option>
-    <option value="right">right</option>
-</select>`;
+            yAxisCell.innerHTML = `<select>
+                <option value="left">left</option>
+                <option value="right">right</option>
+            </select>`;
 
-const deleteCell = newRow.insertCell(11);
-deleteCell.innerHTML = `<button onclick="deleteRow(this)" style="background: none; color: #ff4d4d;">🗑️</button>`;
+            const deleteCell = newRow.insertCell(11);
+            deleteCell.innerHTML = `<button onclick="deleteRow(this)" style="background: none; color: #ff4d4d;">🗑️</button>`;
 
-for (let i = 12; i < 12; i++) {
-    const newCell = newRow.insertCell(i);
-    newCell.innerHTML = "";
-            }
+            for (let i = 12; i < 12; i++) {
+                const newCell = newRow.insertCell(i);
+                newCell.innerHTML = "";
+                        }
 
-            const xFileSelect = xDataCell.querySelector('.file-select');
-            if (xFileSelect.value) {
-                updateColumnOptions(xFileSelect, 'x');
-            }
-            const yFileSelect = yDataCell.querySelector('.file-select');
-            if (yFileSelect.value) {
-                updateColumnOptions(yFileSelect, 'y');
-            }
-        }
+                        const xFileSelect = xDataCell.querySelector('.file-select');
+                        if (xFileSelect.value) {
+                            updateColumnOptions(xFileSelect, 'x');
+                        }
+                        const yFileSelect = yDataCell.querySelector('.file-select');
+                        if (yFileSelect.value) {
+                            updateColumnOptions(yFileSelect, 'y');
+                        }
+                    }
 
         function updateColumnOptions(fileSelect, axis) {
             const selectedFileName = fileSelect.value;
@@ -394,8 +399,109 @@ for (let i = 12; i < 12; i++) {
             alert("Daten-Button wurde geklickt, macht aber noch nichts Spezielles.");
         }
 
-        function plotmanagerFunktion() {
-            alert("Plot-Button wurde geklickt, macht aber noch nichts Spezielles.");
+        async function plotmanagerFunktion() {
+            const table = document.getElementById("data-table");
+            const rows = table.querySelectorAll("tr");
+            const dataSets = [];
+
+            const fileInput = document.getElementById("file-input").files;
+
+            for (const row of rows) {
+                if (row.rowIndex === 0) continue; // Überschrift überspringen
+                const cells = row.querySelectorAll("td");
+                const visible = cells[4].querySelector("input").checked;
+                if (!visible) continue;
+
+                const xFile = cells[0].querySelector("select").value;
+                const xColumn = cells[1].querySelector("select").value;
+                const yFile = cells[2].querySelector("select").value;
+                const yColumn = cells[3].querySelector("select").value;
+                const legendName = cells[5].querySelector("input").value || `Dataset ${row.rowIndex}`;
+                const color = cells[6].querySelector("select").value;
+                const lineStyle = cells[7].querySelector("select").value;
+                const lineWidth = parseFloat(cells[8].querySelector("input").value);
+
+                // Daten aus Dateien extrahieren
+                const xData = await extractColumnData(xFile, xColumn, fileInput);
+                const yData = await extractColumnData(yFile, yColumn, fileInput);
+
+                if (xData && yData) {
+                    dataSets.push({
+                        label: legendName,
+                        borderColor: color,
+                        borderWidth: lineWidth,
+                        borderDash: lineStyle === 'dashed' ? [5, 5] : [],
+                        data: xData.map((x, i) => ({ x: x, y: yData[i] })),
+                    });
+                }
+            }
+
+            if (dataSets.length > 0) {
+                renderPlot(dataSets); // Plot erstellen
+            } else {
+                alert("Keine sichtbaren Datensätze mit gültigen Daten gefunden!");
+            }
+        }
+
+        async function extractColumnData(fileName, columnName, files) {
+            for (let file of files) {
+                if (file.name === fileName) {
+                    if (file.name.endsWith('.xlsx')) {
+                        // XLSX-Daten lesen
+                        return new Promise((resolve) => {
+                            const reader = new FileReader();
+                            reader.onload = function (e) {
+                                const data = new Uint8Array(e.target.result);
+                                const workbook = XLSX.read(data, { type: 'array' });
+                                const worksheet = workbook.Sheets[workbook.SheetNames[0]];
+                                const jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
+                                const columnIndex = jsonData[0].indexOf(columnName);
+                                const columnData = jsonData.slice(1).map(row => parseFloat(row[columnIndex]));
+                                resolve(columnData);
+                            };
+                            reader.readAsArrayBuffer(file);
+                        });
+                    } else {
+                        // CSV- oder TXT-Daten lesen
+                        return new Promise((resolve) => {
+                            const reader = new FileReader();
+                            reader.onload = function (e) {
+                                const content = e.target.result;
+                                const rows = content.split(/\r?\n/).map(row => row.split(','));
+                                const headerIndex = rows[0].indexOf(columnName);
+                                const columnData = rows.slice(1).map(row => parseFloat(row[headerIndex]));
+                                resolve(columnData);
+                            };
+                            reader.readAsText(file);
+                        });
+                    }
+                }
+            }
+            return null;
+        }
+
+        function renderPlot(dataSets) {
+            const ctx = document.getElementById('plotCanvas').getContext('2d');
+            new Chart(ctx, {
+                type: 'line',
+                data: {
+                    datasets: dataSets
+                },
+                options: {
+                    responsive: true,
+                    scales: {
+                        x: {
+                            type: 'linear',
+                            position: 'bottom',
+                            title: { display: true, text: 'X-Achse' }
+                        },
+                        y: {
+                            type: 'linear',
+                            title: { display: true, text: 'Y-Achse' }
+                        }
+                    }
+                }
+            });
         }
 
         function exportmanagerFunktion() {
