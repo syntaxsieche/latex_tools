@@ -1,0 +1,455 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chemikalienliste</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #333;
+            color: #f0f0f0;
+            text-align: center;
+            margin: 20px;
+        }
+        h1 {
+            color: #ffffff;
+        }
+        .container {
+            margin-top: 20px;
+            padding: 20px;
+            background-color: #444;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
+        }
+        .input-field, .button {
+            margin-top: 10px;
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+        }
+        input[type="file"], button, input[type="text"] {
+            padding: 10px;
+            font-size: 1em;
+            border-radius: 5px;
+            border: none;
+            background-color: #555;
+            color: #f0f0f0;
+            cursor: pointer;
+        }
+        select[multiple], input[type="text"] {
+            height: auto;
+            min-height: 30px;
+            width: 100%;
+        }
+        .table-container {
+            margin-top: 20px;
+            overflow-x: auto;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        th, td {
+            padding: 8px;
+            text-align: center;
+            color: #f0f0f0;
+        }
+        th {
+            background-color: #5a8ff0;
+        }
+        #latexOutput {
+            font-family: monospace;
+            background-color: #444;
+            padding: 10px;
+            border-radius: 5px;
+            color: #f0f0f0;
+            margin-top: 20px;
+            white-space: pre-wrap;
+            text-align: left;
+            word-break: break-all;
+        }
+        .phys-data-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .phys-data-group {
+            display: flex;
+            gap: 5px;
+            margin-bottom: 5px;
+        }
+        .small-input {
+            width: 60px;
+            padding: 5px;
+            font-size: 0.9em;
+            text-align: center;
+        }
+        .add-phys-group {
+            background-color: #5a8ff0;
+            border: none;
+            color: white;
+            padding: 5px;
+            font-size: 1em;
+            cursor: pointer;
+            border-radius: 5px;
+        }
+        .caption-container {
+            margin-bottom: 15px;
+            text-align: center;
+        }
+        #captionInput {
+            width: 80%;
+            padding: 8px;
+            font-size: 1em;
+            border-radius: 5px;
+            border: none;
+            background-color: #555;
+            color: #f0f0f0;
+            text-align: center;
+        }
+        .phys-description-container {
+            margin-top: 10px;
+        }
+        .phys-description-group {
+            display: flex;
+            gap: 5px;
+            margin-bottom: 5px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Chemikalienliste</h1>
+    <div class="container">
+        <div class="input-field">
+            <input type="file" id="fileInput" accept=".json" style="display: none;" onchange="uploadJson()">
+            <button onclick="document.getElementById('fileInput').click()">JSON-Datei hochladen</button>
+            <button onclick="downloadTableData()">JSON herunterladen</button>
+        </div>
+
+        <div class="caption-container">
+            <label for="captionInput">Tabellenbeschreibung (Caption):</label>
+            <input type="text" id="captionInput" placeholder="Standard Caption wird genutzt, wenn leer">
+        </div>
+
+        <div class="phys-description-container" id="physDescriptionContainer">
+            <!-- Hier werden die Beschreibungsfelder dynamisch eingefügt -->
+        </div>
+
+        <div class="table-container">
+            <table id="dataTable">
+                <thead>
+                    <tr>
+                        <th>Chemikalie</th>
+                        <th>Hersteller</th>
+                        <th>CAS-Nr.</th>
+                        <th>phys. Daten</th>
+                        <th>GHS-Symbole</th>
+                        <th>H- & P-Sätze</th>
+                    </tr>
+                </thead>
+                <tbody id="tableBody">
+                </tbody>
+            </table>
+        </div>
+        <div>
+            <button onclick="addRow()">Zeile hinzufügen</button>
+            <button onclick="generateLatexCode()">LaTeX Code generieren</button>
+        </div>
+        <div id="latexOutput"></div>
+    </div>
+
+    <script>
+        // Objekt zum Speichern der Beschreibungen
+        let savedDescriptions = {};
+
+        function addRow() {
+            const tableBody = document.getElementById("tableBody");
+            const newRow = document.createElement("tr");
+
+            newRow.innerHTML = `
+                <td contenteditable="true"></td>
+                <td contenteditable="true"></td>
+                <td contenteditable="true"></td>
+                <td class="phys-data-container">
+                    <div class="phys-data-group">
+                        <input type="text" placeholder="Formelzeichen" class="small-input" oninput="updatePhysDescriptions()" />
+                        <input type="text" placeholder="Wert" class="small-input" oninput="updatePhysDescriptions()" />
+                        <input type="text" placeholder="Einheit" class="small-input" oninput="updatePhysDescriptions()" />
+                    </div>
+                    <button class="add-phys-group" onclick="addPhysDataGroup(this)">+</button>
+                </td>
+                <td>
+                    <select multiple>
+                        <option value="achtung">Achtung</option>
+                        <option value="aetzend">Ätzend</option>
+                        <option value="brandfoerdernd">Brandfördernd</option>
+                        <option value="entzuendbar">Entzündbar</option>
+                        <option value="explosion">Explosion</option>
+                        <option value="gasunterdruck">Gas unter Druck</option>
+                        <option value="gesundheitsgefaehrdend">Gesundheitsgefährdend</option>
+                        <option value="toxisch">Toxisch</option>
+                        <option value="umweltgefaehrdend">Umweltgefährdend</option>
+                    </select>
+                </td>
+                <td contenteditable="true"></td>
+            `;
+
+            tableBody.appendChild(newRow);
+            updatePhysDescriptions();
+        }
+
+        function addPhysDataGroup(button) {
+            const container = button.parentElement;
+            const newGroup = document.createElement("div");
+            newGroup.classList.add("phys-data-group");
+            newGroup.innerHTML = `
+                <input type="text" placeholder="Formelzeichen" class="small-input" oninput="updatePhysDescriptions()" />
+                <input type="text" placeholder="Wert" class="small-input" oninput="updatePhysDescriptions()" />
+                <input type="text" placeholder="Einheit" class="small-input" oninput="updatePhysDescriptions()" />
+            `;
+            container.insertBefore(newGroup, button);
+            updatePhysDescriptions();
+        }
+
+        function updatePhysDescriptions() {
+            const physDescriptionContainer = document.getElementById("physDescriptionContainer");
+            const currentFormelzeichen = new Set();
+
+            // Speichere aktuelle Beschreibungen
+            document.querySelectorAll("#physDescriptionContainer .phys-description-group").forEach(group => {
+                const label = group.querySelector('label').textContent;
+                const formelzeichen = label.split(' ')[2].replace(':', ''); // Extrahiert das Formelzeichen aus "Beschreibung für X:"
+                const description = group.querySelector('input').value;
+                if (description) {
+                    savedDescriptions[formelzeichen] = description;
+                }
+            });
+
+            // Leere den Container
+            physDescriptionContainer.innerHTML = "";
+
+            // Füge alle Formelzeichen-Beschreibungsfelder hinzu
+            document.querySelectorAll("#tableBody tr td .phys-data-group").forEach((group, index) => {
+                const formelzeichen = group.querySelector('input[placeholder="Formelzeichen"]').value.trim();
+                if (formelzeichen && !currentFormelzeichen.has(formelzeichen)) {
+                    currentFormelzeichen.add(formelzeichen);
+                    const descriptionGroup = document.createElement("div");
+                    descriptionGroup.classList.add("phys-description-group");
+                    
+                    // Verwende gespeicherte Beschreibung, falls vorhanden
+                    const savedDescription = savedDescriptions[formelzeichen] || '';
+                    
+                    descriptionGroup.innerHTML = `
+                        <label for="physDescription${index}">Beschreibung für ${formelzeichen}</label>
+                        <input type="text" id="physDescription${index}" 
+                               placeholder="Beschreibung eingeben" 
+                               value="${savedDescription}"
+                               oninput="saveDescription('${formelzeichen}', this.value)">
+                    `;
+                    physDescriptionContainer.appendChild(descriptionGroup);
+                }
+            });
+        }
+
+        function saveDescription(formelzeichen, description) {
+            savedDescriptions[formelzeichen] = description;
+        }
+
+        function generateLatexCode() {
+            const tableRows = document.querySelectorAll("#tableBody tr");
+            const captionText = document.getElementById("captionInput").value.trim() || 
+                                "alle verwendeten Chemikalien im Verlauf dieser Arbeit";
+
+            // Sammle aktuelle Formelzeichen und deren Beschreibungen
+            const physDescriptions = [];
+            document.querySelectorAll("#tableBody tr td .phys-data-group").forEach(group => {
+                const formelzeichen = group.querySelector('input[placeholder="Formelzeichen"]').value.trim();
+                if (formelzeichen && savedDescriptions[formelzeichen]) {
+                    physDescriptions.push(`${formelzeichen} ${savedDescriptions[formelzeichen]}`);
+                }
+            });
+
+            // Remove duplicates
+            const uniqueDescriptions = [...new Set(physDescriptions)];
+
+            let latexCode = "\\begin{landscape}\n\\section{verwendete Chemikalien}\n\\label{A_verwendete_Chemikalien}\n\\begin{table}[H]\n\\centering\n";
+            
+            latexCode += `\\caption{${captionText}`;
+            if (uniqueDescriptions.length > 0) {
+                latexCode += `\\\\ ${uniqueDescriptions.join(", ")}`;
+            }
+            latexCode += "}\n";
+            
+            latexCode += "\\label{tab:verwendete_Chemikalien}\n";
+            latexCode += "\\begin{tabular}{@{} >{\\centering\\arraybackslash}m{3cm} >{\\centering\\arraybackslash}m{3cm} >{\\centering\\arraybackslash}m{3cm} >{\\centering\\arraybackslash}m{3cm} >{\\centering\\arraybackslash}m{6cm} >{\\centering\\arraybackslash}m{3cm} @{}}\n\\toprule\n";
+            latexCode += "Chemikalie & Hersteller & CAS-Nr. & phys. Daten & GHS-Symbole & H- \\& P-Sätze \\\\\n\\midrule\n";
+
+            tableRows.forEach(row => {
+                const cells = row.querySelectorAll("td");
+                const rowData = Array.from(cells).map((cell, index) => {
+                    if (index === 4) {
+                        const symbols = Array.from(cell.querySelectorAll('select option:checked')).map(option => option.value);
+                        return symbols.map(symbol => `\\includegraphics[width=1.5cm]{Bilder/GHS_Symbole/${symbol}.png}`).join(' ');
+                    } else if (index === 3) {
+                        const groups = "\\parbox{3cm}{\\centering " + 
+                            Array.from(cell.querySelectorAll('.phys-data-group')).map(group => 
+                                Array.from(group.querySelectorAll('input')).map(input => input.value.trim()).join(" ")
+                            ).join("\\\\ ") + "}";
+                        return groups;
+                    } else {
+                        return cell.textContent.trim().replace(/&/g, '\\&');
+                    }
+                }).join(" & ");
+                latexCode += `${rowData} \\\\\n\\midrule\n`;
+            });
+
+            latexCode += "\\end{tabular}\n\\end{table}\n\\end{landscape}";
+            document.getElementById("latexOutput").innerText = latexCode;
+        }
+
+        function downloadTableData() {
+            const tableData = [];
+            document.querySelectorAll('#tableBody tr').forEach(row => {
+                const rowData = Array.from(row.querySelectorAll('td')).map((td, index) => {
+                    if (index === 4) { // GHS-Symbole
+                        return Array.from(td.querySelector('select').selectedOptions).map(option => option.value);
+                    } else if (index === 3) { // Phys. Daten
+                        return Array.from(td.querySelectorAll('.phys-data-group')).map(group => 
+                            Array.from(group.querySelectorAll('input')).map(input => input.value.trim()).join(" ")
+                        ).join("\n"); // Jede Gruppe auf eine neue Zeile
+                    }
+                    return td.textContent.trim();
+                });
+                tableData.push(rowData);
+            });
+
+            // Erstelle ein Objekt, das die Tabellendaten, Beschreibungen und Caption enthält
+            const fullData = {
+                tableData: tableData,
+                descriptions: savedDescriptions,
+                caption: document.getElementById('captionInput').value
+            };
+
+            // JSON-Datei erstellen und herunterladen
+            const blob = new Blob([JSON.stringify(fullData, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = 'chemTableData.json';
+            link.click();
+        }
+
+        function uploadJson() {
+            const fileInput = document.getElementById('fileInput');
+            const file = fileInput.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const fullData = JSON.parse(e.target.result);
+                    const data = fullData.tableData || fullData; // Für Abwärtskompatibilität
+                    
+                    // Lade die gespeicherten Beschreibungen
+                    if (fullData.descriptions) {
+                        savedDescriptions = fullData.descriptions;
+                    }
+
+                    // Lade die gespeicherte Caption
+                    if (fullData.caption) {
+                        document.getElementById('captionInput').value = fullData.caption;
+                    }
+
+                    const tableBody = document.getElementById('tableBody');
+                    tableBody.innerHTML = '';
+                    
+                    data.forEach(rowData => {
+                        const row = document.createElement('tr');
+                        
+                        // [Rest der Funktion bleibt gleich...]
+                        // Erste drei Spalten (Chemikalie, Hersteller, CAS-Nr.)
+                        for (let i = 0; i < 3; i++) {
+                            const cell = document.createElement('td');
+                            cell.contentEditable = true;
+                            cell.textContent = rowData[i] || '';
+                            row.appendChild(cell);
+                        }
+                        
+                        // Physikalische Daten
+                        const physDataCell = document.createElement('td');
+                        physDataCell.className = 'phys-data-container';
+                        const physDataStr = rowData[3] || '';
+                        const physDataGroups = physDataStr.split('\n');
+                        
+                        physDataGroups.forEach(groupStr => {
+                            const group = document.createElement('div');
+                            group.className = 'phys-data-group';
+                            const values = groupStr.trim().split(' ');
+                            
+                            ['Formelzeichen', 'Wert', 'Einheit'].forEach((placeholder, i) => {
+                                const input = document.createElement('input');
+                                input.type = 'text';
+                                input.placeholder = placeholder;
+                                input.className = 'small-input';
+                                input.value = values[i] || '';
+                                input.addEventListener('input', updatePhysDescriptions);
+                                group.appendChild(input);
+                            });
+                            
+                            physDataCell.appendChild(group);
+                        });
+                        
+                        // Add-Button für physikalische Daten
+                        const addButton = document.createElement('button');
+                        addButton.className = 'add-phys-group';
+                        addButton.textContent = '+';
+                        addButton.onclick = function() { addPhysDataGroup(this); };
+                        physDataCell.appendChild(addButton);
+                        row.appendChild(physDataCell);
+                        
+                        // GHS-Symbole
+                        const ghsCell = document.createElement('td');
+                        const ghsSelect = document.createElement('select');
+                        ghsSelect.multiple = true;
+                        
+                        const ghs_options = [
+                            ['achtung', 'Achtung'],
+                            ['aetzend', 'Ätzend'],
+                            ['brandfoerdernd', 'Brandfördernd'],
+                            ['entzuendbar', 'Entzündbar'],
+                            ['explosion', 'Explosion'],
+                            ['gasunterdruck', 'Gas unter Druck'],
+                            ['gesundheitsgefaehrdend', 'Gesundheitsgefährdend'],
+                            ['toxisch', 'Toxisch'],
+                            ['umweltgefaehrdend', 'Umweltgefährdend']
+                        ];
+                        
+                        ghs_options.forEach(([value, text]) => {
+                            const option = document.createElement('option');
+                            option.value = value;
+                            option.text = text;
+                            if (rowData[4] && rowData[4].includes(value)) {
+                                option.selected = true;
+                            }
+                            ghsSelect.appendChild(option);
+                        });
+                        
+                        ghsCell.appendChild(ghsSelect);
+                        row.appendChild(ghsCell);
+                        
+                        // H- & P-Sätze
+                        const hpCell = document.createElement('td');
+                        hpCell.contentEditable = true;
+                        hpCell.textContent = rowData[5] || '';
+                        row.appendChild(hpCell);
+                        
+                        tableBody.appendChild(row);
+                    });
+                    
+                    updatePhysDescriptions();
+                };
+                reader.readAsText(file);
+            }
+        }
+    </script>
+</body>
+</html>
